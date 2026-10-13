@@ -35,7 +35,12 @@ jobs:
 
       - name: Push to fork
         env:
-          SYNC_PAT: ${{ secrets.SYNC_PAT }}
+          DEPLOY_KEY: ${{ secrets.SYNC_DEPLOY_KEY }}
         run: |
-          git remote set-url origin "https://x-access-token:${SYNC_PAT}@github.com/sushistack/clawgod.git"
-          git push --force-with-lease origin main
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${DEPLOY_KEY}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+          git remote set-url origin git@github.com:sushistack/clawgod.git
+          GIT_SSH_COMMAND='ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes' git push --force-with-lease origin main
